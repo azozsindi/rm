@@ -1,6 +1,23 @@
 @import "tailwindcss";
 
 @layer base {
+  /* 0. نظام الرموز التصميمية للمسافات وأبعاد اللمس (Mobile-First Spacing Tokens) */
+  :root {
+    --space-1: 0.25rem;  /* 4px */
+    --space-2: 0.5rem;   /* 8px */
+    --space-3: 0.75rem;  /* 12px */
+    --space-4: 1rem;     /* 16px */
+    --space-5: 1.25rem;  /* 20px */
+    --space-6: 1.5rem;   /* 24px */
+    --space-8: 2rem;     /* 32px */
+    --space-10: 2.5rem;  /* 40px */
+    
+    /* هوامش الأمان وأبعاد مناطق اللمس القياسية */
+    --touch-target-min: 2.75rem; /* 44px - الحد الأدنى لمنطقة اللمس المريحة للإبهام */
+    --gutter-mobile: 0.875rem;   /* 14px - هامش الأمان الجانبي لشاشات الجوال 360px-375px */
+    --gutter-desktop: 1.5rem;    /* 24px - هامش الأمان الجانبي للشاشات الكبيرة */
+  }
+
   /* 1. Box Model Global Reset: يضمن حساب الحشو والحدود ضمن العرض والارتفاع الكلي دون تضخم العناصر */
   *, ::before, ::after {
     box-sizing: border-box;
