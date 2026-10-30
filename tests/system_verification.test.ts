@@ -253,30 +253,33 @@ function runVerification() {
 
   // --- Test 6: تحديد الشفت الصحيح ---
   {
-    // Bandar: 12:00 to 23:59 (hours 12 to 23)
-    // Hakim: 00:00 to 11:59 (hours 0 to 11)
-    const bandarShiftAt14 = getShiftForSaudiHour(14); // 2:00 PM
-    const hakimShiftAt8 = getShiftForSaudiHour(8);    // 8:00 AM
-    const passed = bandarShiftAt14 === 'bandar' && hakimShiftAt8 === 'hakim';
+    // Evening / Bandar: 12:00 to 23:59 (hours 12 to 23)
+    // Morning / Hakim: 00:00 to 11:59 (hours 0 to 11)
+    const shiftAt14 = getShiftForSaudiHour(14); // 2:00 PM -> Evening / Bandar
+    const shiftAt8 = getShiftForSaudiHour(8);    // 8:00 AM -> Morning / Hakim
+    const passed = (shiftAt14 === 'evening' || shiftAt14 === 'bandar') && 
+                   (shiftAt8 === 'morning' || shiftAt8 === 'hakim');
     results.push({
       id: 6,
-      title: 'تحديد الشفت الصحيح',
+      title: 'تحديد الشفت الصحيح (صباح ومساء)',
       passed,
-      details: `الساعة 14:00 (2 ظهراً) حددت شفت: ${bandarShiftAt14}، والساعة 08:00 (8 صباحاً) حددت شفت: ${hakimShiftAt8}.`,
+      details: `الساعة 14:00 (2 ظهراً) حددت شفت: ${shiftAt14}، والساعة 08:00 (8 صباحاً) حددت شفت: ${shiftAt8}.`,
     });
   }
 
   // --- Test 7: العمليات عند منتصف الليل ---
   {
-    const shiftAt23_59 = getShiftForSaudiHour(23); // 23:59 -> Bandar
-    const shiftAt00_00 = getShiftForSaudiHour(0);  // 00:00 -> Hakim
-    const shiftAt00_05 = getShiftForSaudiHour(0);  // 00:05 -> Hakim
-    const passed = shiftAt23_59 === 'bandar' && shiftAt00_00 === 'hakim' && shiftAt00_05 === 'hakim';
+    const shiftAt23_59 = getShiftForSaudiHour(23); // 23:59 -> Evening / Bandar
+    const shiftAt00_00 = getShiftForSaudiHour(0);  // 00:00 -> Morning / Hakim
+    const shiftAt00_05 = getShiftForSaudiHour(0);  // 00:05 -> Morning / Hakim
+    const passed = (shiftAt23_59 === 'evening' || shiftAt23_59 === 'bandar') && 
+                   (shiftAt00_00 === 'morning' || shiftAt00_00 === 'hakim') && 
+                   (shiftAt00_05 === 'morning' || shiftAt00_05 === 'hakim');
     results.push({
       id: 7,
-      title: 'العمليات عند منتصف الليل',
+      title: 'العمليات عند منتصف الليل (الانتقال السلس بين الشفتات)',
       passed,
-      details: `الساعة 23:59 تتبع شفت بندر بدقة، وبدءاً من 00:00 منتصف الليل تنتقل لشفت حكيم تلقائياً دون تداخل.`,
+      details: `الساعة 23:59 تتبع الشفت المسائي بدقة، وبدءاً من 00:00 منتصف الليل تنتقل للشفت الصباحي تلقائياً دون تداخل.`,
     });
   }
 

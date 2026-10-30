@@ -112,6 +112,9 @@ export interface ExtraServiceItem {
   id: string;
   name: string;
   price: number;
+  description?: string;
+  isActive?: boolean;
+  createdAt?: string;
 }
 
 export type PaymentMethod = 'cash' | 'network' | 'free';

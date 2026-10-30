@@ -117,6 +117,11 @@ interface AccountingContextType {
   addService: (name: string, price: number, description?: string) => { success: boolean; error?: string };
   updateService: (id: string, name: string, price: number, description?: string) => { success: boolean; error?: string };
   toggleServiceActive: (id: string) => { success: boolean; error?: string };
+  deleteService: (id: string) => { success: boolean; error?: string };
+  addExtraService: (name: string, price: number, description?: string) => { success: boolean; error?: string };
+  updateExtraService: (id: string, name: string, price: number, description?: string) => { success: boolean; error?: string };
+  toggleExtraServiceActive: (id: string) => { success: boolean; error?: string };
+  deleteExtraService: (id: string) => { success: boolean; error?: string };
 
   // Expenses
   recordExpense: (expense: Omit<Expense, 'id' | 'serialNumber' | 'createdAt' | 'categoryLabel' | 'loggedBy'>) => { success: boolean; error?: string };
@@ -810,6 +815,162 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     return { success: true };
   }, [state.services, state.currentUser, can]);
+
+  const deleteService = useCallback((id: string): { success: boolean; error?: string } => {
+    if (!can('services.toggle')) {
+      return { success: false, error: 'غير مصرح: ليس لديك صلاحية حذف الخدمات' };
+    }
+
+    const target = state.services.find(s => s.id === id);
+    if (!target) return { success: false, error: 'الخدمة غير موجودة' };
+
+    const now = new Date();
+    const audit: AuditLogEntry = {
+      id: `audit-srv-del-${Date.now()}`,
+      timestamp: now.toISOString(),
+      saudiTime: formatSaudiDateTime(now),
+      action: 'حذف خدمة غسيل',
+      details: `تم حذف خدمة الغسيل "${target.name}" بواسطة ${state.currentUser.name}`,
+      performedBy: state.currentUser.name,
+      performedById: state.currentUser.id,
+      category: 'price',
+    };
+
+    setState(prev => ({
+      ...prev,
+      services: prev.services.filter(s => s.id !== id),
+      auditLogs: [audit, ...prev.auditLogs],
+    }));
+
+    return { success: true };
+  }, [state.services, state.currentUser, can]);
+
+  const addExtraService = useCallback((name: string, price: number, description?: string): { success: boolean; error?: string } => {
+    if (!can('services.create')) {
+      return { success: false, error: 'غير مصرح: ليس لديك صلاحية إضافة خدمات إضافية' };
+    }
+
+    const newExtra: ExtraServiceItem = {
+      id: `extra-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      name: name.trim(),
+      price: Math.max(0, price),
+      description: description?.trim(),
+      isActive: true,
+      createdAt: new Date().toISOString(),
+    };
+
+    const now = new Date();
+    const audit: AuditLogEntry = {
+      id: `audit-extra-add-${Date.now()}`,
+      timestamp: now.toISOString(),
+      saudiTime: formatSaudiDateTime(now),
+      action: 'إضافة خدمة إضافية جديدة',
+      details: `تمت إضافة الخدمة الإضافية "${newExtra.name}" بسعر ${newExtra.price} ر.س بواسطة ${state.currentUser.name}`,
+      performedBy: state.currentUser.name,
+      performedById: state.currentUser.id,
+      category: 'price',
+      newValue: newExtra,
+    };
+
+    setState(prev => ({
+      ...prev,
+      extraServices: [...(prev.extraServices || []), newExtra],
+      auditLogs: [audit, ...prev.auditLogs],
+    }));
+
+    return { success: true };
+  }, [state.currentUser, can]);
+
+  const updateExtraService = useCallback((id: string, name: string, price: number, description?: string): { success: boolean; error?: string } => {
+    if (!can('services.edit_price')) {
+      return { success: false, error: 'غير مصرح: ليس لديك صلاحية تعديل الخدمات الإضافية' };
+    }
+
+    const target = (state.extraServices || []).find(e => e.id === id);
+    if (!target) return { success: false, error: 'الخدمة الإضافية غير موجودة' };
+
+    const oldPrice = target.price;
+    const now = new Date();
+    const audit: AuditLogEntry = {
+      id: `audit-extra-edit-${Date.now()}`,
+      timestamp: now.toISOString(),
+      saudiTime: formatSaudiDateTime(now),
+      action: 'تعديل خدمة إضافية',
+      details: `تم تعديل الخدمة الإضافية "${target.name}": السعر السابق ${oldPrice} ر.س -> الجديد ${price} ر.س بواسطة ${state.currentUser.name}`,
+      performedBy: state.currentUser.name,
+      performedById: state.currentUser.id,
+      category: 'price',
+      previousValue: { name: target.name, price: oldPrice },
+      newValue: { name, price },
+    };
+
+    setState(prev => ({
+      ...prev,
+      extraServices: (prev.extraServices || []).map(e => e.id === id ? { ...e, name: name.trim(), price: Math.max(0, price), description: description?.trim() } : e),
+      auditLogs: [audit, ...prev.auditLogs],
+    }));
+
+    return { success: true };
+  }, [state.extraServices, state.currentUser, can]);
+
+  const toggleExtraServiceActive = useCallback((id: string): { success: boolean; error?: string } => {
+    if (!can('services.toggle')) {
+      return { success: false, error: 'غير مصرح: ليس لديك صلاحية إيقاف أو تفعيل الخدمات الإضافية' };
+    }
+
+    const target = (state.extraServices || []).find(e => e.id === id);
+    if (!target) return { success: false, error: 'الخدمة الإضافية غير موجودة' };
+
+    const newActiveState = !target.isActive;
+    const now = new Date();
+    const audit: AuditLogEntry = {
+      id: `audit-extra-toggle-${Date.now()}`,
+      timestamp: now.toISOString(),
+      saudiTime: formatSaudiDateTime(now),
+      action: newActiveState ? 'تفعيل خدمة إضافية' : 'إيقاف خدمة إضافية',
+      details: `تم ${newActiveState ? 'تفعيل' : 'إيقاف مؤقت'} للخدمة الإضافية "${target.name}" بواسطة ${state.currentUser.name}`,
+      performedBy: state.currentUser.name,
+      performedById: state.currentUser.id,
+      category: 'price',
+    };
+
+    setState(prev => ({
+      ...prev,
+      extraServices: (prev.extraServices || []).map(e => e.id === id ? { ...e, isActive: newActiveState } : e),
+      auditLogs: [audit, ...prev.auditLogs],
+    }));
+
+    return { success: true };
+  }, [state.extraServices, state.currentUser, can]);
+
+  const deleteExtraService = useCallback((id: string): { success: boolean; error?: string } => {
+    if (!can('services.toggle')) {
+      return { success: false, error: 'غير مصرح: ليس لديك صلاحية حذف الخدمات الإضافية' };
+    }
+
+    const target = (state.extraServices || []).find(e => e.id === id);
+    if (!target) return { success: false, error: 'الخدمة الإضافية غير موجودة' };
+
+    const now = new Date();
+    const audit: AuditLogEntry = {
+      id: `audit-extra-del-${Date.now()}`,
+      timestamp: now.toISOString(),
+      saudiTime: formatSaudiDateTime(now),
+      action: 'حذف خدمة إضافية',
+      details: `تم حذف الخدمة الإضافية "${target.name}" بواسطة ${state.currentUser.name}`,
+      performedBy: state.currentUser.name,
+      performedById: state.currentUser.id,
+      category: 'price',
+    };
+
+    setState(prev => ({
+      ...prev,
+      extraServices: (prev.extraServices || []).filter(e => e.id !== id),
+      auditLogs: [audit, ...prev.auditLogs],
+    }));
+
+    return { success: true };
+  }, [state.extraServices, state.currentUser, can]);
 
   // Expenses with permissions
   const recordExpense = useCallback((expenseData: Omit<Expense, 'id' | 'serialNumber' | 'createdAt' | 'categoryLabel' | 'loggedBy'>): { success: boolean; error?: string } => {
@@ -2149,6 +2310,11 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         addService,
         updateService,
         toggleServiceActive,
+        deleteService,
+        addExtraService,
+        updateExtraService,
+        toggleExtraServiceActive,
+        deleteExtraService,
         recordExpense,
         payAccruedExpense,
         recordSalaryPayment,

@@ -8,6 +8,7 @@ import {
   ShiftCloseRecord, 
   AuditLogEntry, 
   WashService, 
+  ExtraServiceItem,
   AppUser, 
   CustomRoleDefinition,
   ShiftType 
@@ -19,6 +20,7 @@ const STORAGE_KEY = 'RM_STAR_CAR_WASH_SYSTEM_STATE_v3';
 
 export interface AccountingState {
   services: WashService[];
+  extraServices: ExtraServiceItem[];
   sales: SaleTransaction[];
   expenses: Expense[];
   salaries: EmployeeSalary[];
@@ -136,6 +138,49 @@ export const INITIAL_SERVICES: WashService[] = [
     description: 'تنظيف بالبخار الحار للمقصورة والمحرك',
     isActive: true,
     createdAt: new Date().toISOString(),
+  },
+];
+
+export const INITIAL_EXTRA_SERVICES: ExtraServiceItem[] = [
+  {
+    id: 'extra-1',
+    name: 'تعطير فاخر',
+    price: 10,
+    description: 'معطر مركز فاخر للمقصورة والمفارش',
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+  },
+  {
+    id: 'extra-2',
+    name: 'تلميع كفرات',
+    price: 15,
+    description: 'تلميع أسود فاحم عالي الجودة وحماية للإطارات',
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+  },
+  {
+    id: 'extra-3',
+    name: 'تكييس مقاعد',
+    price: 10,
+    description: 'تكييس نايلون مقوى للمقاعد والدعاسات',
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+  },
+  {
+    id: 'extra-4',
+    name: 'واكس سائل',
+    price: 20,
+    description: 'طبقة شمع نانو مائية لحماية اللمعة',
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+  },
+  {
+    id: 'extra-5',
+    name: 'إزالة بقع',
+    price: 25,
+    description: 'تنظيف عميق وإزالة البقع المستعصية',
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
   },
 ];
 
@@ -290,6 +335,7 @@ export function getInitialState(): AccountingState {
 
   return {
     services: INITIAL_SERVICES,
+    extraServices: INITIAL_EXTRA_SERVICES,
     sales: [],
     expenses: [],
     salaries: INITIAL_EMPLOYEES,
@@ -357,6 +403,11 @@ export function loadSavedState(): AccountingState {
     // Make sure current user is one of the sanitized users
     const matchedCurrentUser = sanitizedUsers.find(u => u.id === parsed.currentUser?.id) || sanitizedUsers[0];
 
+    // Ensure extraServices exists
+    const extraServices: ExtraServiceItem[] = Array.isArray(parsed.extraServices) && parsed.extraServices.length > 0
+      ? parsed.extraServices
+      : INITIAL_EXTRA_SERVICES;
+
     // Ensure payrollEmployees exists
     const payrollEmployees: PayrollEmployee[] = Array.isArray(parsed.payrollEmployees) && parsed.payrollEmployees.length > 0
       ? parsed.payrollEmployees
@@ -393,6 +444,7 @@ export function loadSavedState(): AccountingState {
       ...parsed,
       users: sanitizedUsers,
       roles: existingRoles,
+      extraServices,
       payrollEmployees,
       deductions,
       salaries: sanitizedSalaries,
