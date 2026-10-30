@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { SaleTransaction } from '../types';
-import { Printer, X, Sparkles, Gift } from 'lucide-react';
+import { Printer, X, Sparkles, Gift, MessageCircle, Phone } from 'lucide-react';
 import { getShiftShortName } from '../utils/time';
+import { openWhatsAppReceipt } from '../utils/whatsapp';
 
 interface ReceiptModalProps {
   sale: SaleTransaction;
@@ -9,18 +10,25 @@ interface ReceiptModalProps {
 }
 
 export const ReceiptModal: React.FC<ReceiptModalProps> = ({ sale, onClose }) => {
+  const [phoneNumber, setPhoneNumber] = useState<string>(sale.customerPhone || '');
+  const [showPhoneInput, setShowPhoneInput] = useState<boolean>(!sale.customerPhone);
+
   const handlePrint = () => {
     window.print();
   };
 
+  const handleSendWhatsApp = () => {
+    openWhatsAppReceipt(sale, phoneNumber);
+  };
+
   return (
     <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-      <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-4 sm:p-6 space-y-4 shadow-2xl relative text-slate-100 my-auto">
+      <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-4 sm:p-5 space-y-3.5 shadow-2xl relative text-slate-100 my-auto">
         
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-3 left-3 text-slate-400 hover:text-white p-2 rounded-xl bg-slate-800/80 no-print min-w-[40px] min-h-[40px] flex items-center justify-center"
+          className="absolute top-3 left-3 text-slate-400 hover:text-white p-2 rounded-xl bg-slate-800/80 no-print min-w-[36px] min-h-[36px] flex items-center justify-center"
         >
           <X className="w-5 h-5" />
         </button>
@@ -66,6 +74,12 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({ sale, onClose }) => 
               <span className="text-slate-500">الكاشير:</span>
               <span>{sale.cashierName}</span>
             </div>
+            {sale.customerPhone && (
+              <div className="flex justify-between text-slate-600">
+                <span className="text-slate-500">جوال العميل:</span>
+                <span className="font-mono-numbers">{sale.customerPhone}</span>
+              </div>
+            )}
           </div>
 
           {/* Items Table */}
@@ -134,24 +148,63 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({ sale, onClose }) => 
 
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center gap-2 pt-1 no-print">
+        {/* WhatsApp Phone Input (Optional) */}
+        <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800 space-y-1.5 no-print">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-slate-300 flex items-center gap-1">
+              <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
+              <span>إرسال عبر واتساب (اختياري):</span>
+            </span>
+            <button
+              type="button"
+              onClick={() => setShowPhoneInput(!showPhoneInput)}
+              className="text-[10px] text-sky-400 hover:text-white"
+            >
+              {showPhoneInput ? 'إخفاء' : 'تعديل الرقم'}
+            </button>
+          </div>
+          {showPhoneInput && (
+            <div className="flex gap-1.5">
+              <input
+                type="tel"
+                placeholder="05xxxxxxx (اختياري)"
+                value={phoneNumber}
+                onChange={e => setPhoneNumber(e.target.value)}
+                className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 font-mono-numbers text-left"
+                dir="ltr"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Action Buttons: Print, WhatsApp, and Done */}
+        <div className="grid grid-cols-2 gap-2 pt-1 no-print">
           <button
             type="button"
             onClick={handlePrint}
-            className="flex-1 bg-gradient-to-r from-sky-400 to-cyan-500 hover:from-sky-300 hover:to-cyan-400 text-slate-950 py-3 rounded-xl font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-sky-500/25 transition-all min-h-[44px]"
+            className="bg-sky-500 hover:bg-sky-400 text-slate-950 py-2.5 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 shadow-md transition-all min-h-[42px]"
           >
             <Printer className="w-4 h-4" />
             <span>طباعة الإيصال</span>
           </button>
+
           <button
             type="button"
-            onClick={onClose}
-            className="bg-slate-800 hover:bg-slate-700 text-slate-200 py-3 px-4 rounded-xl font-bold text-xs border border-slate-700 transition-all min-h-[44px]"
+            onClick={handleSendWhatsApp}
+            className="bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 shadow-md shadow-emerald-950/40 transition-all min-h-[42px]"
           >
-            تم
+            <MessageCircle className="w-4 h-4" />
+            <span>إرسال واتساب</span>
           </button>
         </div>
+
+        <button
+          type="button"
+          onClick={onClose}
+          className="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 rounded-xl font-bold text-xs border border-slate-700 transition-all min-h-[38px] no-print"
+        >
+          إغلاق
+        </button>
 
       </div>
     </div>

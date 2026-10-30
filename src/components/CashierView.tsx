@@ -17,11 +17,13 @@ import {
   Edit3,
   X,
   Layers,
-  Power
+  Power,
+  MessageCircle
 } from 'lucide-react';
 import { formatSaudiDate, formatSaudiTime, getShiftShortName } from '../utils/time';
 import { PaymentMethod, SaleTransaction } from '../types';
 import { ReceiptModal } from './ReceiptModal';
+import { openWhatsAppReceipt } from '../utils/whatsapp';
 
 export const CashierView: React.FC = () => {
   const { 
@@ -42,6 +44,9 @@ export const CashierView: React.FC = () => {
   const isManager = currentUser.role === 'manager' || currentUser.roleId === 'super_admin' || currentUser.roleId === 'manager';
   const activeServices = state.services.filter(s => s.isActive);
   const activeExtraServices = (state.extraServices || []).filter(e => e.isActive);
+
+  // Optional customer mobile for WhatsApp receipt
+  const [customerPhone, setCustomerPhone] = useState<string>('');
 
   // Manager Quick Modals state
   const [showWashManagerModal, setShowWashManagerModal] = useState<boolean>(false);
@@ -91,6 +96,7 @@ export const CashierView: React.FC = () => {
     setShowExtraForm(false);
     setCustomExtraName('');
     setCustomExtraPrice('');
+    setCustomerPhone('');
     setErrorMessage(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -153,6 +159,7 @@ export const CashierView: React.FC = () => {
       extraServices: formattedExtras,
       paymentMethod,
       extrasPaymentMethod: paymentMethod === 'free' && extraServicesTotal > 0 ? extrasPaymentMethod : undefined,
+      customerPhone: customerPhone.trim() || undefined,
     });
 
     setIsSubmitting(false);
@@ -213,14 +220,25 @@ export const CashierView: React.FC = () => {
 
             <div className="flex items-center gap-2">
               {lastCompletedSale && (
-                <button
-                  type="button"
-                  onClick={() => setShowReceipt(true)}
-                  className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-3 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-md whitespace-nowrap min-h-[40px]"
-                >
-                  <Printer className="w-4 h-4" />
-                  <span>طباعة الإيصال</span>
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={() => openWhatsAppReceipt(lastCompletedSale, customerPhone)}
+                    className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-md whitespace-nowrap min-h-[40px]"
+                    title="إرسال الفاتورة عبر واتساب"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    <span>واتساب</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowReceipt(true)}
+                    className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-3 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-md whitespace-nowrap min-h-[40px]"
+                  >
+                    <Printer className="w-4 h-4" />
+                    <span>طباعة</span>
+                  </button>
+                </>
               )}
               <button
                 type="button"
@@ -569,6 +587,30 @@ export const CashierView: React.FC = () => {
             <span>{errorMessage}</span>
           </div>
         )}
+
+        {/* ================= OPTIONAL: CUSTOMER PHONE FOR WHATSAPP RECEIPT ================= */}
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 sm:p-4 shadow-sm space-y-2">
+          <div className="flex items-center justify-between">
+            <label htmlFor="customer-phone-input" className="text-xs sm:text-sm font-bold text-slate-300 flex items-center gap-2">
+              <MessageCircle className="w-4 h-4 text-emerald-400" />
+              <span>إرسال الفاتورة عبر واتساب (اختياري):</span>
+            </label>
+            <span className="text-[10px] text-slate-400 bg-slate-950 px-2 py-0.5 rounded border border-slate-800 font-semibold">
+              اختياري
+            </span>
+          </div>
+
+          <input
+            id="customer-phone-input"
+            type="tel"
+            inputMode="tel"
+            dir="ltr"
+            placeholder="05xxxxxxx (اختياري - يمكنك تركه فارغاً)"
+            value={customerPhone}
+            onChange={e => setCustomerPhone(e.target.value)}
+            className="w-full bg-slate-950 border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-slate-600 font-mono-numbers text-left focus:outline-none transition-colors"
+          />
+        </div>
 
         {/* ================= GRAND TOTAL & ACTION BUTTON ================= */}
         <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-sky-950/40 border-2 border-sky-500/60 rounded-2xl p-4 sm:p-5 shadow-2xl shadow-sky-500/10 space-y-3">

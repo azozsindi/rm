@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAccounting } from '../store/AccountingContext';
 import { formatSaudiTime, formatSaudiDate, getShiftShortName } from '../utils/time';
 import { Clock, UserCheck, ChevronDown, Check, X, UserCog, ShieldCheck } from 'lucide-react';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface HeaderProps {
   onNavigateToUsers?: () => void;
@@ -76,8 +77,9 @@ export const Header: React.FC<HeaderProps> = ({ onNavigateToUsers }) => {
             </div>
           </div>
 
-          {/* User Switcher: Spaced Button with zero crowding (Selector 3) */}
-          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+          {/* User Switcher & PWA Install */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+            <PWAInstallButton compact={true} />
             {/* Desktop user tabs */}
             <div className="hidden lg:flex items-center gap-1.5 bg-slate-950 border border-slate-800 p-1 rounded-xl">
               <span className="text-xs text-slate-400 px-1.5">المستخدم:</span>

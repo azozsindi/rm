@@ -51,6 +51,7 @@ interface RecordSaleParams {
   paymentMethod: PaymentMethod;
   extrasPaymentMethod?: 'cash' | 'network';
   notes?: string;
+  customerPhone?: string;
   customShift?: ShiftType;
 }
 
@@ -539,6 +540,7 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       networkAmount,
       status: 'completed',
       idempotencyKey: idempotencyToken,
+      customerPhone: params.customerPhone?.trim() || undefined,
       notes: params.notes,
     };
 

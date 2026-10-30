@@ -14,6 +14,7 @@ import { ReportsView } from './components/ReportsView';
 import { ShiftCloseView } from './components/ShiftCloseView';
 import { AuditLedgerView } from './components/AuditLedgerView';
 import { UserManagementView } from './components/UserManagementView';
+import { OfflineIndicator } from './components/OfflineIndicator';
 import { ShieldCheck, Sparkles, X } from 'lucide-react';
 
 function AppLayout() {
@@ -92,6 +93,9 @@ function AppLayout() {
         {activeTab === 'ledger' && <AuditLedgerView />}
         {activeTab === 'users' && <UserManagementView />}
       </main>
+
+      {/* Offline Status Floating Indicator */}
+      <OfflineIndicator />
 
       {/* Mobile Fixed Bottom Navigation Bar (Visible only on mobile/tablet) */}
       <MobileBottomNav activeTab={activeTab} onTabChange={setActiveTab} />

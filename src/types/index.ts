@@ -147,6 +147,7 @@ export interface SaleTransaction {
   cancelledBy?: string;
   cancelledById?: string;
   idempotencyKey: string;
+  customerPhone?: string;
   notes?: string;
 }
 
