@@ -47,7 +47,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ activeTab, onT
   return (
     <>
       {/* Fixed Bottom Navigation Bar (Visible only on Mobile & Tablet: < md) */}
-      <nav aria-label="شريط التنقل السفلي للجوال" className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-900/98 backdrop-blur-xl border-t border-slate-800/90 px-2 pt-1.5 pb-[max(env(safe-area-inset-bottom),10px)] shadow-2xl no-print w-full">
+      <nav aria-label="شريط التنقل السفلي للجوال" className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-900/98 backdrop-blur-xl border-t border-slate-800 px-2 pt-2 pb-4 pb-[max(env(safe-area-inset-bottom,0px)+12px,18px)] shadow-[0_-8px_25px_rgba(0,0,0,0.5)] no-print w-full">
         <div className="grid grid-cols-5 items-center max-w-md mx-auto w-full gap-1">
           
           {/* 1. Cashier (Primary Thumb Action) */}
@@ -63,7 +63,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ activeTab, onT
             }`}>
               <CircleDollarSign className="w-5 h-5" />
             </div>
-            <span className="text-[11px] mt-0.5 leading-normal font-bold">الكاشير</span>
+            <span className="text-[11px] mt-1 leading-tight font-bold truncate block">الكاشير</span>
           </button>
 
           {/* 2. Dashboard */}
@@ -79,7 +79,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ activeTab, onT
             }`}>
               <LayoutDashboard className="w-5 h-5" />
             </div>
-            <span className="text-[11px] mt-0.5 leading-normal font-bold">الرئيسية</span>
+            <span className="text-[11px] mt-1 leading-tight font-bold truncate block">الرئيسية</span>
           </button>
 
           {/* 3. Cash Drawer */}
@@ -95,7 +95,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ activeTab, onT
             }`}>
               <Wallet className="w-5 h-5" />
             </div>
-            <span className="text-[11px] mt-0.5 leading-normal font-bold">الصندوق</span>
+            <span className="text-[11px] mt-1 leading-tight font-bold truncate block">الصندوق</span>
           </button>
 
           {/* 4. Shift Close */}
@@ -111,7 +111,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ activeTab, onT
             }`}>
               <LockKeyhole className="w-5 h-5" />
             </div>
-            <span className="text-[11px] mt-0.5 leading-normal font-bold">الشفت</span>
+            <span className="text-[11px] mt-1 leading-tight font-bold truncate block">الشفت</span>
           </button>
 
           {/* 5. More Menu */}
@@ -127,7 +127,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ activeTab, onT
             }`}>
               <Menu className="w-5 h-5" />
             </div>
-            <span className="text-[11px] mt-0.5 leading-normal font-bold">المزيد</span>
+            <span className="text-[11px] mt-1 leading-tight font-bold truncate block">المزيد</span>
             {isMoreActive && (
               <span className="w-1.5 h-1.5 rounded-full bg-sky-400 absolute top-1.5 left-1/2 -translate-x-1/2"></span>
             )}

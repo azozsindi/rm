@@ -1,16 +1,26 @@
 @import "tailwindcss";
 
 @layer base {
+  /* 1. Box Model Global Reset: يضمن حساب الحشو والحدود ضمن العرض والارتفاع الكلي دون تضخم العناصر */
   *, ::before, ::after {
     box-sizing: border-box;
+    margin: 0;
+    padding: 0;
   }
 
+  /* 2. ضبط الصفحة العامة وخطوط العرض (Typography) لضمان عدم تداخل الأحرف العربية */
   html, body {
     overflow-x: hidden;
     max-width: 100vw;
     width: 100%;
     position: relative;
     font-family: 'Cairo', 'IBM Plex Sans Arabic', -apple-system, BlinkMacSystemFont, sans-serif;
+    /* ارتفاع السطر المناسب للخطوط العربية (Cairo) لمنع تداخل الحروف الصاعدة والهابطة */
+    line-height: 1.6;
+    letter-spacing: 0;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     -webkit-overflow-scrolling: touch;
     touch-action: manipulation;
   }
@@ -20,14 +30,38 @@
     max-width: 100vw;
     overflow-x: hidden;
     position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
   }
-  
+
+  /* 3. معالجة الخانات وحقول الإدخال (Inputs & Selects): عزل النصوص ومنع تلاصقها مع الحدود */
+  input, select, textarea, button {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: 1.5; /* ارتفاع سطر متوازن داخل الخانات لمنع قص أطراف الحروف */
+    box-sizing: border-box;
+    max-width: 100%;
+  }
+
+  /* منع تمدد عناصر الـ Flex داخل الحاويات وتداخلها مع العناصر المجاورة */
+  .flex > *, .inline-flex > * {
+    min-width: 0; /* يسمح للعنصر بالانكماش دون كسر الحاوية */
+  }
+
+  /* 4. معالجة كسر النصوص الطويلة وتفادي خروجها عن حدود الحاوية (Word Wrap & Overflow) */
+  p, span, h1, h2, h3, h4, h5, h6, label, div {
+    overflow-wrap: break-word; /* كسر الكلمات الطويلة جداً التي قد تتجاوز عرض الخانة */
+  }
+
+  /* أرقام محاسبية متساوية العرض لمنع تذبذب وتداخل الأرقام المتجاورة */
   .font-mono-numbers {
     font-family: 'JetBrains Mono', monospace;
     font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
   }
 
-  /* Safe horizontal table scrolling without body sway */
+  /* حاويات الجداول القابلة للتمرير مع حماية الهوامش الجانبية */
   .overflow-x-auto {
     -webkit-overflow-scrolling: touch;
     touch-action: pan-x pan-y;
@@ -37,6 +71,7 @@
   img {
     max-width: 100%;
     height: auto;
+    display: block;
   }
 }
 

@@ -273,7 +273,7 @@ export const ALL_PERMISSIONS: PermissionDefinition[] = [
     moduleLabel: 'إدارة الشفتات',
     actionType: 'view',
     actionLabel: 'عرض',
-    description: 'الاطلاع على الشفت الحالي والورديات (بندر / حكيم)',
+    description: 'الاطلاع على الشفت الحالي والورديات (صباح / مساء)',
   },
   {
     key: 'shifts.view_report',
@@ -544,7 +544,7 @@ export const ALL_PERMISSIONS: PermissionDefinition[] = [
     moduleLabel: 'التقارير المالية',
     actionType: 'view',
     actionLabel: 'عرض',
-    description: 'مقارنة أداء شفت بندر وشفت حكيم',
+    description: 'مقارنة أداء شفت الصباح وشفت المساء',
   },
   {
     key: 'reports.expenses',

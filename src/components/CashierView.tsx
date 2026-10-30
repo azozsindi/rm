@@ -18,12 +18,16 @@ import {
   X,
   Layers,
   Power,
-  MessageCircle
+  MessageCircle,
+  Download,
+  FileText,
+  Loader2
 } from 'lucide-react';
 import { formatSaudiDate, formatSaudiTime, getShiftShortName } from '../utils/time';
 import { PaymentMethod, SaleTransaction } from '../types';
 import { ReceiptModal } from './ReceiptModal';
 import { openWhatsAppReceipt } from '../utils/whatsapp';
+import { downloadReceiptPDF } from '../utils/pdfReceipt';
 
 export const CashierView: React.FC = () => {
   const { 
@@ -85,6 +89,19 @@ export const CashierView: React.FC = () => {
   const [showFreeConfirmation, setShowFreeConfirmation] = useState<boolean>(false);
   const [lastCompletedSale, setLastCompletedSale] = useState<SaleTransaction | null>(null);
   const [showReceipt, setShowReceipt] = useState<boolean>(false);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState<boolean>(false);
+
+  const handleQuickDownloadPdf = async (sale: SaleTransaction) => {
+    try {
+      setIsDownloadingPdf(true);
+      await downloadReceiptPDF(sale);
+    } catch (err) {
+      console.error('Failed to download PDF receipt:', err);
+      setShowReceipt(true);
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
 
   // Reset entire bill to 0.00 SAR (ready for new car)
   const resetBillToZero = () => {
@@ -225,18 +242,33 @@ export const CashierView: React.FC = () => {
                     type="button"
                     onClick={() => openWhatsAppReceipt(lastCompletedSale, customerPhone)}
                     className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-md whitespace-nowrap min-h-[40px]"
-                    title="إرسال الفاتورة عبر واتساب"
+                    title="مشاركة الفاتورة دايركت عبر واتساب للعميل"
                   >
                     <MessageCircle className="w-4 h-4" />
-                    <span>واتساب</span>
+                    <span>واتساب دايركت</span>
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isDownloadingPdf}
+                    onClick={() => handleQuickDownloadPdf(lastCompletedSale)}
+                    className="bg-rose-600 hover:bg-rose-500 text-white px-3 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-md whitespace-nowrap min-h-[40px] disabled:opacity-60"
+                    title="تحميل إيصال الفاتورة كملف PDF"
+                  >
+                    {isDownloadingPdf ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Download className="w-4 h-4" />
+                    )}
+                    <span>تحميل PDF</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowReceipt(true)}
-                    className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-3 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-md whitespace-nowrap min-h-[40px]"
+                    className="bg-sky-500 hover:bg-sky-400 text-slate-950 px-3 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-md whitespace-nowrap min-h-[40px]"
+                    title="عرض الإيصال ومشاركته PDF أو طباعته"
                   >
-                    <Printer className="w-4 h-4" />
-                    <span>طباعة</span>
+                    <FileText className="w-4 h-4" />
+                    <span>إيصال PDF</span>
                   </button>
                 </>
               )}
@@ -588,12 +620,12 @@ export const CashierView: React.FC = () => {
           </div>
         )}
 
-        {/* ================= OPTIONAL: CUSTOMER PHONE FOR WHATSAPP RECEIPT ================= */}
+        {/* ================= OPTIONAL: CUSTOMER PHONE FOR PDF RECEIPT ================= */}
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 sm:p-4 shadow-sm space-y-2">
           <div className="flex items-center justify-between">
             <label htmlFor="customer-phone-input" className="text-xs sm:text-sm font-bold text-slate-300 flex items-center gap-2">
-              <MessageCircle className="w-4 h-4 text-emerald-400" />
-              <span>إرسال الفاتورة عبر واتساب (اختياري):</span>
+              <FileText className="w-4 h-4 text-rose-400" />
+              <span>إرسال إيصال الـ PDF للعميل عبر واتساب (اختياري):</span>
             </label>
             <span className="text-[10px] text-slate-400 bg-slate-950 px-2 py-0.5 rounded border border-slate-800 font-semibold">
               اختياري
@@ -605,10 +637,10 @@ export const CashierView: React.FC = () => {
             type="tel"
             inputMode="tel"
             dir="ltr"
-            placeholder="05xxxxxxx (اختياري - يمكنك تركه فارغاً)"
+            placeholder="05xxxxxxx (اختياري - لمشاركة ملف إيصال الـ PDF)"
             value={customerPhone}
             onChange={e => setCustomerPhone(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-slate-600 font-mono-numbers text-left focus:outline-none transition-colors"
+            className="w-full bg-slate-950 border border-slate-700 focus:border-rose-500 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-slate-600 font-mono-numbers text-left focus:outline-none transition-colors"
           />
         </div>
 

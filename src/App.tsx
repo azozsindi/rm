@@ -79,8 +79,8 @@ function AppLayout() {
       {/* Desktop Navigation Tabs (Hidden on mobile) */}
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
 
-      {/* Main Content Area (With bottom padding on mobile to clear the bottom nav) */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-2.5 sm:px-6 lg:px-8 py-3.5 sm:py-6 pb-24 md:pb-8 overflow-x-hidden">
+      {/* Main Content Area (With generous bottom padding on mobile to clear the bottom nav) */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-2.5 sm:px-6 lg:px-8 py-3.5 sm:py-6 pb-32 sm:pb-28 md:pb-8 overflow-x-hidden">
         {activeTab === 'cashier' && <CashierView />}
         {activeTab === 'dashboard' && <DashboardView onNavigate={setActiveTab} />}
         {activeTab === 'pricing' && <PriceManagementView />}

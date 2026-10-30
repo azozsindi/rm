@@ -117,7 +117,11 @@ export const UserManagementView: React.FC = () => {
 
       const matchRole = roleFilter === 'all' || u.roleId === roleFilter;
       const matchStatus = statusFilter === 'all' || (statusFilter === 'active' ? u.isActive : !u.isActive);
-      const matchShift = shiftFilter === 'all' || u.assignedShift === shiftFilter;
+      const matchShift = 
+        shiftFilter === 'all' || 
+        (shiftFilter === 'morning' && (u.assignedShift === 'morning' || u.assignedShift === 'hakim')) ||
+        (shiftFilter === 'evening' && (u.assignedShift === 'evening' || u.assignedShift === 'bandar')) ||
+        u.assignedShift === shiftFilter;
 
       return matchSearch && matchRole && matchStatus && matchShift;
     });
@@ -525,9 +529,9 @@ export const UserManagementView: React.FC = () => {
                 className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500 min-w-[120px]"
               >
                 <option value="all">كل الورديات</option>
-                <option value="bandar">شفت بندر</option>
-                <option value="hakim">شفت حكيم</option>
-                <option value="any">أي شفت</option>
+                <option value="morning">☀️ شفت الصباح (12:00 ص – 12:00 م)</option>
+                <option value="evening">🌙 شفت المساء (12:00 م – 12:00 ص)</option>
+                <option value="any">أي شفت (متاح)</option>
               </select>
 
               {/* Status filter */}

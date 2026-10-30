@@ -30,7 +30,7 @@ export const ReportsView: React.FC = () => {
   const [datePreset, setDatePreset] = useState<'today' | 'this_month' | 'this_year' | 'custom' | 'all'>('this_month');
   const [startDate, setStartDate] = useState<string>(`${currentMonthStr}-01`);
   const [endDate, setEndDate] = useState<string>(todayStr);
-  const [filterShift, setFilterShift] = useState<string>('all'); // all, bandar, hakim
+  const [filterShift, setFilterShift] = useState<string>('all'); // all, morning, evening
   const [filterPayment, setFilterPayment] = useState<string>('all'); // all, cash, network, free
   const [filterService, setFilterService] = useState<string>('all');
 

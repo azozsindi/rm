@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { SaleTransaction } from '../types';
-import { Printer, X, Sparkles, Gift, MessageCircle, Phone } from 'lucide-react';
+import { Printer, X, Download, Share2, FileText, Check, Loader2, MessageCircle } from 'lucide-react';
 import { getShiftShortName } from '../utils/time';
+import { downloadReceiptPDF, shareOrSendPdfReceipt, directWhatsAppWithPdf } from '../utils/pdfReceipt';
 import { openWhatsAppReceipt } from '../utils/whatsapp';
 
 interface ReceiptModalProps {
@@ -11,14 +12,62 @@ interface ReceiptModalProps {
 
 export const ReceiptModal: React.FC<ReceiptModalProps> = ({ sale, onClose }) => {
   const [phoneNumber, setPhoneNumber] = useState<string>(sale.customerPhone || '');
-  const [showPhoneInput, setShowPhoneInput] = useState<boolean>(!sale.customerPhone);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
+  const [pdfSuccessMessage, setPdfSuccessMessage] = useState<string | null>(null);
 
   const handlePrint = () => {
     window.print();
   };
 
-  const handleSendWhatsApp = () => {
-    openWhatsAppReceipt(sale, phoneNumber);
+  const handleDirectWhatsApp = async () => {
+    try {
+      setIsGeneratingPdf(true);
+      setPdfSuccessMessage(null);
+      await directWhatsAppWithPdf(sale, phoneNumber);
+      setPdfSuccessMessage('تم فتح واتساب مباشرة لمشاركة الفاتورة مع العميل!');
+      setTimeout(() => setPdfSuccessMessage(null), 5000);
+    } catch (err) {
+      console.error('Failed to open WhatsApp:', err);
+      openWhatsAppReceipt(sale, phoneNumber);
+      setPdfSuccessMessage('تم فتح واتساب مباشرة مع العميل!');
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    try {
+      setIsGeneratingPdf(true);
+      setPdfSuccessMessage(null);
+      await downloadReceiptPDF(sale);
+      setPdfSuccessMessage('تم تحميل إيصال الفاتورة بصيغة PDF بنجاح!');
+      setTimeout(() => setPdfSuccessMessage(null), 4000);
+    } catch (err) {
+      console.error('Failed to generate PDF:', err);
+      setPdfSuccessMessage('تعذر توليد ملف الـ PDF، يرجى استخدام زر الطباعة.');
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
+  const handleSharePdf = async () => {
+    try {
+      setIsGeneratingPdf(true);
+      setPdfSuccessMessage(null);
+      const res = await shareOrSendPdfReceipt(sale, phoneNumber);
+      if (res.mode === 'web_share') {
+        setPdfSuccessMessage('تم فتح نافذة المشاركة بالجوال لإرسال ملف PDF!');
+      } else {
+        setPdfSuccessMessage('تم فتح محادثة واتساب العميل مباشرة وتجهيز ملف PDF!');
+      }
+      setTimeout(() => setPdfSuccessMessage(null), 5000);
+    } catch (err) {
+      console.error('Failed to share PDF:', err);
+      openWhatsAppReceipt(sale, phoneNumber);
+      setPdfSuccessMessage('تم فتح محادثة واتساب لإرسال الفاتورة للعميل!');
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
 
   return (
@@ -28,12 +77,27 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({ sale, onClose }) => 
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-3 left-3 text-slate-400 hover:text-white p-2 rounded-xl bg-slate-800/80 no-print min-w-[36px] min-h-[36px] flex items-center justify-center"
+          className="absolute top-3 left-3 text-slate-400 hover:text-white p-2 rounded-xl bg-slate-800/80 no-print min-w-[36px] min-h-[36px] flex items-center justify-center transition-colors"
         >
           <X className="w-5 h-5" />
         </button>
 
-        {/* Printable Receipt Paper Container */}
+        {/* Top Title */}
+        <div className="flex items-center gap-2 border-b border-slate-800 pb-2.5">
+          <div className="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0">
+            <FileText className="w-4 h-4" />
+          </div>
+          <div>
+            <h3 className="font-black text-white text-sm">
+              إيصال الفاتورة الإلكتروني
+            </h3>
+            <span className="text-[10px] text-slate-400 font-mono-numbers">
+              {sale.serialNumber} · جاهز كملف PDF
+            </span>
+          </div>
+        </div>
+
+        {/* Printable Receipt Paper Container (Target for PDF Canvas Capture) */}
         <div id="receipt-print-area" className="bg-white text-slate-900 p-4 sm:p-5 rounded-xl space-y-3 font-mono text-xs shadow-inner">
           
           {/* Header with Authentic RM STAR Logo */}
@@ -45,14 +109,14 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({ sale, onClose }) => 
                 className="h-12 w-auto object-contain"
               />
             </div>
-            <div className="font-black text-base sm:text-lg tracking-wider text-slate-950">
+            <div className="font-black text-base sm:text-lg tracking-wider text-slate-950 font-sans">
               RM STAR CAR WASH
             </div>
             <div className="text-[11px] text-slate-600 font-sans font-semibold">
               مغسلة سيارات آر إم ستار
             </div>
             <div className="text-[10px] text-slate-500 mt-0.5">
-              فاتورة نقدية مبسطة
+              فاتورة ضريبية نقدية مبسطة
             </div>
           </div>
 
@@ -100,7 +164,7 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({ sale, onClose }) => 
             </div>
 
             {/* Extra Services if any */}
-            {sale.extraServices.map((extra, idx) => (
+            {sale.extraServices && sale.extraServices.map((extra, idx) => (
               <div key={idx} className="flex justify-between text-[11px] text-slate-700 pl-2">
                 <span>+ {extra.name}</span>
                 <span className="font-mono-numbers">{extra.price.toFixed(2)} ر.س</span>
@@ -148,63 +212,112 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({ sale, onClose }) => 
 
         </div>
 
-        {/* WhatsApp Phone Input (Optional) */}
-        <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800 space-y-1.5 no-print">
+        {/* Customer Phone for Direct WhatsApp Share */}
+        <div className="bg-slate-950 border border-slate-800 rounded-xl p-2.5 space-y-1.5 no-print">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-300 flex items-center gap-1">
+            <label htmlFor="modal-phone-input" className="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
               <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
-              <span>إرسال عبر واتساب (اختياري):</span>
+              <span>جوال العميل للمشاركة الفورية عبر واتساب:</span>
+            </label>
+            <span className="text-[10px] text-emerald-400 font-semibold bg-emerald-950/60 border border-emerald-500/30 px-1.5 py-0.5 rounded">
+              دايركت
             </span>
+          </div>
+          <input
+            id="modal-phone-input"
+            type="tel"
+            inputMode="tel"
+            dir="ltr"
+            placeholder="05xxxxxxx (أدخل الرقم للمشاركة مباشرة)"
+            value={phoneNumber}
+            onChange={e => setPhoneNumber(e.target.value)}
+            className="w-full bg-slate-900 border border-slate-700 focus:border-emerald-500 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-600 font-mono-numbers text-left focus:outline-none transition-colors"
+          />
+        </div>
+
+        {/* Feedback notification after generating PDF */}
+        {pdfSuccessMessage && (
+          <div className="bg-emerald-950 border border-emerald-500/50 text-emerald-300 p-2.5 rounded-xl text-xs flex items-center gap-2 animate-in fade-in">
+            <Check className="w-4 h-4 shrink-0 text-emerald-400" />
+            <span>{pdfSuccessMessage}</span>
+          </div>
+        )}
+
+        {/* Primary Actions */}
+        <div className="space-y-2 no-print pt-1">
+          {/* 1. Direct WhatsApp Share Button */}
+          <button
+            type="button"
+            disabled={isGeneratingPdf}
+            onClick={handleDirectWhatsApp}
+            className="w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white py-3 px-3 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/40 transition-all min-h-[46px] disabled:opacity-50 active:scale-[0.99]"
+            title="مشاركة الفاتورة دايركت عبر واتساب للعميل"
+          >
+            {isGeneratingPdf ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <MessageCircle className="w-4 h-4" />
+            )}
+            <span>مشاركة دايركت عبر واتساب 💬</span>
+          </button>
+
+          {/* 2. PDF Download & Native Device Share */}
+          <div className="grid grid-cols-2 gap-2">
+            {/* Download PDF Button */}
             <button
               type="button"
-              onClick={() => setShowPhoneInput(!showPhoneInput)}
-              className="text-[10px] text-sky-400 hover:text-white"
+              disabled={isGeneratingPdf}
+              onClick={handleDownloadPdf}
+              className="bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-rose-950/40 transition-all min-h-[42px] disabled:opacity-50"
+              title="تنزيل الإيصال كملف PDF رسمي على جهازك"
             >
-              {showPhoneInput ? 'إخفاء' : 'تعديل الرقم'}
+              {isGeneratingPdf ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              <span>تحميل إيصال PDF</span>
+            </button>
+
+            {/* Share PDF to WhatsApp / Device */}
+            <button
+              type="button"
+              disabled={isGeneratingPdf}
+              onClick={handleSharePdf}
+              className="bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-700 hover:border-sky-500/50 py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-md transition-all min-h-[42px] disabled:opacity-50"
+              title="مشاركة ملف PDF مباشرة عبر تطبيقات الجوال"
+            >
+              {isGeneratingPdf ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Share2 className="w-4 h-4" />
+              )}
+              <span>مشاركة ملف PDF</span>
             </button>
           </div>
-          {showPhoneInput && (
-            <div className="flex gap-1.5">
-              <input
-                type="tel"
-                placeholder="05xxxxxxx (اختياري)"
-                value={phoneNumber}
-                onChange={e => setPhoneNumber(e.target.value)}
-                className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 font-mono-numbers text-left"
-                dir="ltr"
-              />
-            </div>
-          )}
+
+          {/* 3. Thermal Print & Close */}
+          <div className="grid grid-cols-2 gap-2">
+            {/* Thermal Print */}
+            <button
+              type="button"
+              onClick={handlePrint}
+              className="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 py-2 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all min-h-[38px]"
+            >
+              <Printer className="w-3.5 h-3.5 text-sky-400" />
+              <span>طباعة حرارية</span>
+            </button>
+
+            {/* Close */}
+            <button
+              type="button"
+              onClick={onClose}
+              className="bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 rounded-xl font-bold text-xs border border-slate-700 transition-all min-h-[38px]"
+            >
+              إغلاق
+            </button>
+          </div>
         </div>
-
-        {/* Action Buttons: Print, WhatsApp, and Done */}
-        <div className="grid grid-cols-2 gap-2 pt-1 no-print">
-          <button
-            type="button"
-            onClick={handlePrint}
-            className="bg-sky-500 hover:bg-sky-400 text-slate-950 py-2.5 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 shadow-md transition-all min-h-[42px]"
-          >
-            <Printer className="w-4 h-4" />
-            <span>طباعة الإيصال</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleSendWhatsApp}
-            className="bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 shadow-md shadow-emerald-950/40 transition-all min-h-[42px]"
-          >
-            <MessageCircle className="w-4 h-4" />
-            <span>إرسال واتساب</span>
-          </button>
-        </div>
-
-        <button
-          type="button"
-          onClick={onClose}
-          className="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 rounded-xl font-bold text-xs border border-slate-700 transition-all min-h-[38px] no-print"
-        >
-          إغلاق
-        </button>
 
       </div>
     </div>

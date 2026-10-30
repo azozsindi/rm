@@ -259,7 +259,7 @@ export interface CashDrawerMovement {
 export interface ShiftCloseRecord {
   id: string;
   shift: ShiftType;
-  shiftName: string; // "شفت بندر" أو "شفت حكيم"
+  shiftName: string; // "شفت الصباح" أو "شفت المساء"
   shiftDate: string; // YYYY-MM-DD
   closedAt: string;
   closedBy: string;

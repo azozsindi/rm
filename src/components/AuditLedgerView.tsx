@@ -37,7 +37,7 @@ export const AuditLedgerView: React.FC = () => {
 
   // Shift Reassignment Modal
   const [reassignSaleId, setReassignSaleId] = useState<string | null>(null);
-  const [targetNewShift, setTargetNewShift] = useState<ShiftType>('bandar');
+  const [targetNewShift, setTargetNewShift] = useState<ShiftType>('evening');
   const [reassignReason, setReassignReason] = useState<string>('');
   const [reassignError, setReassignError] = useState<string | null>(null);
 
