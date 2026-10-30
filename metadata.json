@@ -1,0 +1,6 @@
+{
+  "name": "نظام محاسبة مغسلة RM STAR CAR WASH",
+  "description": "نظام محاسبي وكاشير احترافي لإدارة المبيعات، الشفتات، المصروفات، الصندوق، والتقارير المالية لمغسلة سيارات RM STAR",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
